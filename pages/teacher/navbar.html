@@ -1,0 +1,99 @@
+<!-- teacherNavbar.html -->
+<div class="sidebar">
+    <h2 id="userEmail">加载中...</h2>
+    <a onclick="returnToMainPage()" href="#">主页</a>
+    <a href="#">学员管理</a>
+    <a href="#">成绩统计管理</a>
+    <a href="#">权限管理</a>
+    <a href="#">系统设置</a>
+    <a href="#">学生学习行为分析</a>
+    <a href="/teacher/answer/answer.html">学生提问管理</a>
+
+    <a href="/teacher/python/python.html">教学数据管理</a>
+    <a href="#">数据分析可视化</a>
+    <a href="#">教学反馈报告</a>
+    <a onclick="logout()" href="#">退出登录</a>
+</div>
+
+<style>
+.sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.sidebar a {
+    color: #ecf0f1;
+    text-decoration: none;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: block;
+    transition: background-color 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #34495e;
+}
+</style>
+
+<script>
+// 初始化函数，用于设置用户邮箱
+function initializeNavbar() {
+    const userEmail = localStorage.getItem('userEmail');
+    if (userEmail) {
+        const userEmailElement = document.getElementById('userEmail');
+        if (userEmailElement) {
+            userEmailElement.textContent = userEmail;
+        }
+    }
+}
+
+// 返回主页函数
+function returnToMainPage() {
+    window.location.href = "/teacher/teacher.html";
+}
+
+// 退出登录函数
+function logout() {
+    localStorage.removeItem('userEmail');
+    window.location.href = '/logIn/logIn.html';
+}
+
+// 使用 MutationObserver 监听 DOM 变化
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length) {
+            const userEmailElement = document.getElementById('userEmail');
+            if (userEmailElement && userEmailElement.textContent === '加载中...') {
+                initializeNavbar();
+            }
+        }
+    });
+});
+
+// 开始观察 document.body 的变化
+if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+    // 如果页面已经加载完成，直接初始化
+    initializeNavbar();
+} else {
+    document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, { childList: true, subtree: true });
+        initializeNavbar();
+    });
+}
+</script>

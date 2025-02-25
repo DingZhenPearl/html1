@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邮箱登录注册系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #e0e7ff;
+        }
+
+        .container {
+            display: flex;
+            width: 800px;
+            height: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+
+        .left-panel {
+            background-color: #6b82f7;
+            color: white;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .left-panel h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .right-panel h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #3b7dd8;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .toggle-form a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h1>欢迎登录</h1>
+            <p>请登录您的账号</p>
+        </div>
+        
+        <div class="right-panel">
+            <!-- 登录表单 -->
+            <form id="loginForm">
+                <h2>登录</h2>
+                <div class="form-group">
+                    <select id="userType" required>
+                        <option value="teacher">教师登录</option>
+                        <option value="student" selected>学生登录</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="邮箱" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="密码" required>
+                </div>
+                <button type="submit" class="btn">登录</button>
+                <div class="toggle-form">
+                    <a href="#" id="showRegister">没有账号？立即注册</a>
+                </div>
+            </form>
+
+            <!-- 注册表单 -->
+            <form id="registerForm" style="display: none;">
+                <h2>注册</h2>
+                <div class="form-group">
+                    <select id="registerUserType" required>
+                        <option value="teacher">教师注册</option>
+                        <option value="student" selected>学生注册</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="registerEmail" placeholder="邮箱" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="registerPassword" placeholder="密码" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="confirmPassword" placeholder="确认密码" required>
+                </div>
+                <button type="submit" class="btn">注册</button>
+                <div class="toggle-form">
+                    <a href="#" id="showLogin">已有账号？立即登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 表单切换功能
+        document.getElementById('showRegister').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.querySelector('.left-panel h1').textContent = '欢迎注册';
+            document.querySelector('.left-panel p').textContent = '请创建您的账号';
+        });
+
+        document.getElementById('showLogin').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.querySelector('.left-panel h1').textContent = '欢迎登录';
+            document.querySelector('.left-panel p').textContent = '请登录您的账号';
+        });
+
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userType = document.getElementById('userType').value;
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        user_type: userType,
+                        email: email,
+                        password: password 
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    // 存储邮箱到 localStorage
+                    localStorage.setItem('userEmail', email);
+                    
+                    // 登录成功后根据用户类型跳转
+                    if (userType === 'teacher') {
+                        window.location.href = '../teacher/teacher.html';
+                    } else if (userType === 'student') {
+                        window.location.href = '../student/student.html';
+                    }
+                } else {
+                    alert(data.message || '登录失败');
+                }
+            } catch (error) {
+                alert('服务器错误，请稍后重试');
+            }
+        });
+
+        // 注册表单提交
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userType = document.getElementById('registerUserType').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert('两次输入的密码不一致');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        user_type: userType,
+                        email: email,
+                        password: password 
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert('注册成功！');
+                    // 注册成功后切换到登录表单
+                    document.getElementById('showLogin').click();
+                } else {
+                    alert(data.message || '注册失败');
+                }
+            } catch (error) {
+                alert('服务器错误，请稍后重试');
+            }
+        });
+    </script>
+</body>
+</html>

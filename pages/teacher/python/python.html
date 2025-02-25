@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试服务器</title>
+    <style>
+ 
+        /* 主内容区样式 */
+        .main-content {
+            margin-left: 250px; /* 与侧边栏宽度相同 */
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar"></div>
+    <div class="main-content">
+        <button onclick="runPythonScript()">教学数据管理</button>
+        <!-- 在适当的位置添加以下内容 -->
+        <div id="result-container" style="margin: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>执行结果：</h3>
+            <pre id="result-output" style="white-space: pre-wrap; background-color: #f8f9fa; padding: 10px;"></pre>
+        </div>
+    </div>    
+
+
+
+
+
+    <script>
+
+        
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = data;
+                    
+                    const styles = temp.getElementsByTagName('style');
+                    Array.from(styles).forEach(style => {
+                        document.head.appendChild(style.cloneNode(true));
+                    });
+                    
+                    const scripts = temp.getElementsByTagName('script');
+                    Array.from(scripts).forEach(script => {
+                        const newScript = document.createElement('script');
+                        if (script.src) {
+                            newScript.src = script.src;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        document.body.appendChild(newScript);
+                    });
+                    
+                    document.getElementById('navbar').innerHTML = temp.querySelector('.sidebar').outerHTML;
+                })
+                .catch(error => {
+                    console.error('加载导航栏时出错:', error);
+                });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', loadNavbar);
+
+
+
+
+
+
+        async function runPythonScript() {
+            try {
+                const response = await fetch('/run-script', { method: 'POST' });
+                const data = await response.json();
+        
+                const resultOutput = document.getElementById('result-output');
+                
+                if (data.status === 'success') {
+                    resultOutput.textContent = data.result;
+                    resultOutput.style.color = 'green';  // 成功时文字颜色
+                } else {
+                    resultOutput.textContent = `错误：${data.result}`;
+                    resultOutput.style.color = 'red';    // 失败时文字颜色
+                }
+            } catch (error) {
+                const resultOutput = document.getElementById('result-output');
+                resultOutput.textContent = `请求失败：${error.message}`;
+                resultOutput.style.color = 'red';
+            }
+        }
+        
+        // 绑定按钮点击事件（假设按钮 id 为 run-button）
+        document.getElementById('run-button').addEventListener('click', runPythonScript);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问答</title>
+    <style>
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .main-content {
+            max-width: 1000px;
+            margin-left: 250px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .question-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        .student-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .answer-form {
+            margin-top: 15px;
+        }
+
+        .answer-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background-color: #ffd700;
+            color: #000;
+        }
+
+        .status-answered {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .answer-content {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .time-info {
+            color: #666;
+            font-size: 14px;
+            margin-right: 15px;
+        }
+        
+        .question-meta {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            color: #666;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .answer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.pending {
+            background-color: #ffd700;
+            color: #000;
+        }
+        
+        .status.answered {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+
+
+
+
+
+        .follow-up {
+            margin: 15px 0;
+            padding: 12px;
+            border-left: 3px solid #2196F3;
+            background: #f8f9fa;
+            border-radius: 4px; /* 新增圆角 */
+        }
+
+
+        .follow-up.teacher {
+            border-color: #4CAF50;
+        }
+        .follow-up-header {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .follow-up-form {
+            margin-top: 20px;
+        }
+        .follow-up-form textarea {
+            width: 100%;
+            min-height: 80px;
+            margin: 10px 0;
+        }
+
+
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="main-content">
+        <h1>学生问题列表</h1>
+        
+        <div class="questions-list" id="questionsList">
+            <!-- 问题列表将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <script>
+        // 加载并执行navbar内容的函数
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    // 创建一个临时容器
+                    const temp = document.createElement('div');
+                    temp.innerHTML = data;
+                    
+                    // 提取所有样式标签
+                    const styles = temp.getElementsByTagName('style');
+                    Array.from(styles).forEach(style => {
+                        document.head.appendChild(style.cloneNode(true));
+                    });
+                    
+                    // 提取所有脚本标签
+                    const scripts = temp.getElementsByTagName('script');
+                    Array.from(scripts).forEach(script => {
+                        const newScript = document.createElement('script');
+                        if (script.src) {
+                            newScript.src = script.src;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        document.body.appendChild(newScript);
+                    });
+                    
+                    // 添加HTML内容
+                    document.getElementById('navbar').innerHTML = temp.querySelector('.sidebar').outerHTML;
+                })
+                .catch(error => {
+                    console.error('加载导航栏时出错:', error);
+                });
+        }
+
+        // 页面加载完成后执行loadNavbar函数
+        document.addEventListener('DOMContentLoaded', loadNavbar);
+
+
+
+// 在 loadAllQuestions 函数中更新问题列表的渲染
+async function loadAllQuestions() {
+    try {
+        const response = await fetch('/api/all-questions');
+        const data = await response.json();
+        
+        const questionsList = document.getElementById('questionsList');
+        questionsList.innerHTML = data.questions.map(q => {
+            // 格式化时间
+            const createdDate = new Date(q.created_at).toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const answeredDate = q.answered_at ? new Date(q.answered_at).toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : null;
+
+            return `
+                <div class="question-card">
+                    <div class="question-header">
+                        <div class="student-info">学生邮箱: ${q.email}</div>
+                        <div class="time-info">提问时间: ${createdDate}</div>
+                    </div>
+                    <h3>${q.title}</h3>
+                    <p>${q.content}</p>
+                    <span class="status-badge ${q.status === 'pending' ? 'status-pending' : 'status-answered'}">
+                        ${q.status === 'pending' ? '待回答' : '已回答'}
+                    </span>
+                    
+                    ${q.answer ? `
+                        <div class="answer-content">
+                            <div class="answer-header">
+                                <strong>回答：</strong>
+                                <span class="time-info">回答时间: ${answeredDate}</span>
+                            </div>
+                            <p>${q.answer}</p>
+                        </div>
+                    ` : `
+                        <form class="answer-form" onsubmit="submitAnswer(event, ${q.id})">
+                            <textarea placeholder="输入你的回答..." required></textarea>
+                            <button type="submit" class="submit-btn">提交回答</button>
+                        </form>
+                      
+                    `}
+
+${q.follow_ups 
+    ? (Array.isArray(q.follow_ups) ? q.follow_ups : JSON.parse(q.follow_ups)).map(fu => renderFollowUp(fu)).join('')
+    : ''}
+
+                    <form class="follow-up-form" onsubmit="submitFollowUpAnswer(event, ${q.id})">
+                        <textarea placeholder="输入追答内容..." required></textarea>
+                        <button type="submit" class="submit-btn">提交追答</button>
+                    </form>
+
+
+
+
+
+
+
+
+
+
+                    
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+  
+
+// 首先创建一个专门处理follow-ups渲染的函数
+function renderFollowUp(fu) {
+    const dateObj = new Date(fu.time);
+    const formattedTime = dateObj.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+
+    return `
+        <div class="follow-up ${fu.user === 'teacher' ? 'teacher' : ''}">
+            <div class="follow-up-header">
+                <span>${fu.user === 'teacher' ? '老师追答' : '我的追问'}</span>
+                <span class="time-info">${formattedTime}</span>
+            </div>
+            <p>${fu.content}</p>
+        </div>
+    `;
+}
+
+
+
+
+
+
+// 提交回答
+        async function submitAnswer(event, questionId) {
+            event.preventDefault();
+            const answer = event.target.querySelector('textarea').value;
+
+            try {
+                const response = await fetch('/api/submit-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        questionId,
+                        answer
+                    })
+                });
+
+                if (response.ok) {
+                    alert('回答提交成功！');
+                    loadAllQuestions();
+                } else {
+                    alert('提交失败，请重试');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('提交失败，请重试');
+            }
+        }
+
+        // 页面加载时获取所有问题
+        document.addEventListener('DOMContentLoaded', loadAllQuestions);
+
+
+// 修改 submitFollowUpAnswer 函数
+async function submitFollowUpAnswer(event, questionId) {
+    event.preventDefault();
+    const content = event.target.querySelector('textarea').value;
+    const response = await fetch('/api/follow-up-answer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ questionId, content })
+    });
+    if (response.ok) {
+        event.target.reset(); // 清空输入框
+        loadAllQuestions();   // 刷新列表
+    }
+}
+
+
+
+
+    </script>
+</body>
+</html>

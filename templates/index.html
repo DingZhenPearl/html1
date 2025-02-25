@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask MySQL Demo</title>
+</head>
+<body>
+    <h1>用户注册</h1>
+    
+    <!-- 数据提交表单 -->
+    <form id="userForm">
+        <input type="text" name="name" placeholder="姓名" required>
+        <input type="email" name="email" placeholder="邮箱" required>
+        <button type="submit">提交</button>
+    </form>
+
+    <h2>用户列表</h2>
+    <div id="userList"></div>
+
+    <script>
+        // 使用 Fetch API 提交数据
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const response = await fetch('/submit', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            alert(result.message);
+            loadUsers();  // 提交后刷新用户列表
+        });
+
+        // 加载用户数据
+        async function loadUsers() {
+            const response = await fetch('/users');
+            const users = await response.json();
+            
+            const userList = document.getElementById('userList');
+            userList.innerHTML = users.map(user => `
+                <div>${user.id}: ${user.name} - ${user.email}</div>
+            `).join('');
+        }
+
+        // 页面加载时获取用户列表
+        loadUsers();
+    </script>
+</body>
+</html>

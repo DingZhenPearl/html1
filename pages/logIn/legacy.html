@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录与注册界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #e0e7ff;
+        }
+
+        .container {
+            display: flex;
+            width: 800px;
+            height: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+
+        .left-panel {
+            background-color: #6b82f7;
+            color: white;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .left-panel h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .right-panel h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .right-panel select,
+        .right-panel input[type="text"],
+        .right-panel input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .right-panel input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #4a90e2;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .right-panel input[type="submit"]:hover {
+            background-color: #3b7dd8;
+        }
+
+        .switch-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .switch-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .switch-link a:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="left-panel">
+        <h1>编程小助教</h1>
+    </div>
+    <div class="right-panel" id="login-container">
+        <h2>登录</h2>
+        <form action="#" method="post" onsubmit="handleLogin(event)">
+            <select name="user-type" id="user-type" required>
+                <option value="" disabled selected>选择登录类型</option>
+                <option value="teacher">教师登录</option>
+                <option value="student">学生登录</option>
+            </select>
+            <input type="text" name="username" placeholder="邮箱" required>
+            <input type="password" name="password" placeholder="密码" required>
+            <input type="submit" value="登录">
+        </form>
+        <div class="switch-link">
+            没有账号？<a href="#" onclick="showRegister()">注册</a>
+        </div>
+    </div>
+
+    <div class="right-panel hidden" id="register-container">
+        <h2>注册</h2>
+        <form action="#" method="post">
+            <select name="user-type" required>
+                <option value="" disabled selected>选择注册类型</option>
+                <option value="teacher">教师注册</option>
+                <option value="student">学生注册</option>
+            </select>
+            <input type="text" name="username" placeholder="邮箱" required>
+            <input type="password" name="password" placeholder="密码" required>
+            <input type="password" name="confirm-password" placeholder="确认密码" required>
+            <input type="submit" value="注册">
+        </form>
+        <div class="switch-link">
+            已有账号？<a href="#" onclick="showLogin()">登录</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleLogin(event) {
+        event.preventDefault(); // 阻止表单默认提交行为
+        const userType = document.getElementById('user-type').value;
+        if (userType === 'teacher') {
+            window.location.href = '../teacher/teacher.html'; // 跳转到教师主界面
+        } else if (userType === 'student') {
+            window.location.href = '../student/student.html'; // 跳转到学生主界面
+        }
+    }
+
+    function showRegister() {
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('register-container').classList.remove('hidden');
+    }
+
+    function showLogin() {
+        document.getElementById('register-container').classList.add('hidden');
+        document.getElementById('login-container').classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>
