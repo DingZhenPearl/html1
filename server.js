@@ -157,9 +157,25 @@ app.post('/register', async (req, res) => {
 });
 
 // 启动服务器
-app.listen(port, '', () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`服务器运行在 http://localhost:${port}`);
+    console.log(`可通过本地网络IP访问：http://${getIPAddress()}:${port}`);
 });
+
+// 在文件底部添加获取本地IP的方法
+function getIPAddress() {
+    const interfaces = require('os').networkInterfaces();
+    for (const devName in interfaces) {
+        const iface = interfaces[devName];
+        for (let i = 0; i < iface.length; i++) {
+            const alias = iface[i];
+            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                return alias.address;
+            }
+        }
+    }
+    return '0.0.0.0';
+}
 
 
 
