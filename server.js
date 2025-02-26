@@ -9,7 +9,11 @@ const port = 3000;
 const OpenAI = require('openai');
 
 // 中间件
-app.use(cors());
+app.use(cors({
+    origin: '*',  // 允许所有来源访问
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type']
+}));
 app.use(bodyParser.json());
 
 
