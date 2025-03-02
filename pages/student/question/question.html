@@ -219,7 +219,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         // 加载并执行navbar内容的函数
         function loadNavbar() {
             fetch('../navbar.html')
@@ -324,10 +324,6 @@
 
 
 
-
-
-
-
 // 在 loadQuestions 函数中更新问题列表的渲染
 async function loadQuestions() {
     try {
@@ -338,13 +334,6 @@ async function loadQuestions() {
             questionsList.innerHTML = data.questions.map(q => {
                 // 格式化时间
                 //console.log('Follow-ups:', q.follow_ups);
-
-
-
-
-
-
-
 
 
                 const createdDate = new Date(q.created_at).toLocaleString('zh-CN', {
@@ -403,13 +392,6 @@ ${q.follow_ups
                     <textarea placeholder="输入追问内容..." required></textarea>
                     <button type="submit" class="submit-btn">提交追问</button>
                 </form>
-
-         
-
-
-
-
-
 
         </div>
         `;}).join('');
@@ -526,6 +508,6 @@ async function submitFollowUp(event, questionId) {
 
 
 
-    </script>
+</script>
 </body>
 </html>
