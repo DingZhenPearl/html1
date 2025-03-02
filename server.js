@@ -1,83 +1,58 @@
+/**
+ * 教学互动平台服务器
+ * 包含用户认证、AI聊天、问答系统等功能
+ */
+
+// 导入所需模块
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { spawn } = require('child_process');
-const path = require('path'); // 引入 path 模块
-
-const app = express();
-const port = 3000;
+const path = require('path');
 const OpenAI = require('openai');
 
-// 中间件
+// 初始化Express应用
+const app = express();
+const port = 3000;
+
+// ===== 中间件配置 =====
 app.use(cors({
-    origin: '*',  // 允许所有来源访问
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type']
 }));
 app.use(bodyParser.json());
 
-
-// const openai = new OpenAI({
-//     apiKey: 'bce-v3/ALTAK-OWYLnTjefANZQlbFAh7vJ/25eb5517b2ce511a6365fb94f4e6f2d62ab0eb45',    // 替换为实际的API密钥
-//     baseURL: 'https://qianfan.baidubce.com/v2'   // 替换为实际的base URL
-// });
-
-// const openai = new OpenAI({//讯飞的dsr1api
-//     apiKey: 'sk-EH6SkwANfyCPxXVMCe772815Eb4043D9A80eB6Ec8a8f1b5e',    // 替换为实际的API密钥
-//     baseURL: 'https://maas-api.cn-huabei-1.xf-yun.com/v1'   // 替换为实际的base URL
-// });
-
-const openai = new OpenAI({
-    apiKey: 'ipzotlGevNqQsafvWSXi:cooExiNRkHtQtHkkIqNk',    // 替换为实际的API密钥
-    baseURL: 'https://spark-api-open.xf-yun.com/v1'   // 替换为实际的base URL
-});
-
-// 修改 /api/chat-message 路由
-app.post('/api/chat-message', async (req, res) => {
-    try {
-        const { message, messageHistory } = req.body;
-        
-        // 构建完整的对话历史
-        const messages = messageHistory.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.content
-        }));
-        
-        // 添加当前用户消息
-        messages.push({ role: "user", content: message });
-        
-        const completion = await openai.chat.completions.create({
-            // model: "deepseek-v3",
-            //  model: "xdeepseekr1",
-
-           model: "lite",
-
-
-            messages: messages,
-        });
-
-        const aiResponse = completion.choices[0].message.content;
-        res.json({ success: true, message: aiResponse });
-    } catch (error) {
-        console.error('OpenAI API调用失败:', error);
-        res.status(500).json({ success: false, message: '服务器错误' });
-    }
-});
-
-
-
-
-
-// 新增托管整个前端项目根目录
+// 前端静态文件托管
 const staticRoot = path.join('D:', 'Microsoft VS Code', 'projects', 'web', 'html1', 'pages');
 app.use(express.static(staticRoot));
 
-// 添加根路径路由
-app.get('/', (req, res) => {
-    res.sendFile(path.join(staticRoot, '/logIn/logIn.html')); // 使用 path 确保路径正确
-});
+// ===== 工具函数 =====
 
-// 调用Python脚本处理数据库操作
+/**
+ * 获取本地网络IP地址
+ * @returns {string} IP地址
+ */
+function getIPAddress() {
+    const interfaces = require('os').networkInterfaces();
+    for (const devName in interfaces) {
+        const iface = interfaces[devName];
+        for (let i = 0; i < iface.length; i++) {
+            const alias = iface[i];
+            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                return alias.address;
+            }
+        }
+    }
+    return '0.0.0.0';
+}
+
+/**
+ * 执行Python脚本并返回结果
+ * @param {string} scriptName - Python脚本文件名
+ * @param {Array} args - 传递给Python脚本的参数
+ * @returns {Promise} 脚本执行结果的Promise对象
+ */
 function executePythonScript(scriptName, args) {
     return new Promise((resolve, reject) => {
         const pythonProcess = spawn('python', [scriptName, ...args]);
@@ -106,20 +81,35 @@ function executePythonScript(scriptName, args) {
     });
 }
 
-// 登录路由
+// ===== AI聊天服务配置 =====
+const openai = new OpenAI({
+    apiKey: 'ipzotlGevNqQsafvWSXi:cooExiNRkHtQtHkkIqNk',
+    baseURL: 'https://spark-api-open.xf-yun.com/v1'
+});
+
+// ===== 路由配置 =====
+
+// --- 基本路由 ---
+app.get('/', (req, res) => {
+    res.sendFile(path.join(staticRoot, '/logIn/logIn.html'));
+});
+
+// --- 用户认证路由 ---
+/**
+ * 用户登录
+ * 接收用户类型、邮箱和密码，验证用户身份
+ */
 app.post('/login', async (req, res) => {
     try {
         const { user_type, email, password } = req.body;
         
-        // 确保传入了用户类型
         if (!user_type) {
             return res.status(400).json({ success: false, message: '缺少用户类型' });
         }
 
-        // 调用Python脚本验证登录
         const result = await executePythonScript('db_operations.py', [
             'login',
-            user_type,  // Pass user_type to the Python script
+            user_type,
             email,
             password
         ]);
@@ -135,16 +125,17 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
-// 注册路由
+/**
+ * 用户注册
+ * 接收用户类型、邮箱和密码，创建新用户
+ */
 app.post('/register', async (req, res) => {
     try {
         const { user_type, email, password } = req.body;
 
-        // 调用Python脚本处理注册
         const result = await executePythonScript('db_operations.py', [
             'register',
-            user_type,  // Pass user_type to the Python script
+            user_type,
             email,
             password
         ]);
@@ -160,71 +151,44 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// 启动服务器
-app.listen(port, '0.0.0.0', () => {
-    console.log(`服务器运行在 http://localhost:${port}`);
-    console.log(`可通过本地网络IP访问：http://${getIPAddress()}:${port}`);
-});
+// --- AI聊天相关路由 ---
+/**
+ * 处理聊天消息
+ * 接收用户消息，调用AI模型生成回复
+ */
+app.post('/api/chat-message', async (req, res) => {
+    try {
+        const { message, messageHistory } = req.body;
+        
+        // 构建完整的对话历史
+        const messages = messageHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.content
+        }));
+        
+        // 添加当前用户消息
+        messages.push({ role: "user", content: message });
+        
+        const completion = await openai.chat.completions.create({
+            model: "lite",
+            messages: messages,
+        });
 
-// 在文件底部添加获取本地IP的方法
-function getIPAddress() {
-    const interfaces = require('os').networkInterfaces();
-    for (const devName in interfaces) {
-        const iface = interfaces[devName];
-        for (let i = 0; i < iface.length; i++) {
-            const alias = iface[i];
-            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
-                return alias.address;
-            }
-        }
+        const aiResponse = completion.choices[0].message.content;
+        res.json({ success: true, message: aiResponse });
+    } catch (error) {
+        console.error('OpenAI API调用失败:', error);
+        res.status(500).json({ success: false, message: '服务器错误' });
     }
-    return '0.0.0.0';
-}
-
-
-
-
-//跳转python界面
-// 处理按钮点击的 POST 请求，启动python脚本
-app.post('/run-script', (req, res) => {
-    // 执行 Python 脚本（假设脚本在项目根目录，名为 my_script.py）
-    const pythonProcess = spawn('python', ['test.py']);
-
-    let result = '';
-    let error = '';
-
-    // 捕获 Python 脚本的输出
-    pythonProcess.stdout.on('data', (data) => {
-        result += data.toString();
-    });
-
-    // 捕获错误信息
-    pythonProcess.stderr.on('data', (data) => {
-        error += data.toString();
-    });
-
-    // 脚本执行完毕后的处理
-    pythonProcess.on('close', (code) => {
-        if (code !== 0 || error) {
-            res.status(500).json({ status: 'error', result: error });
-        } else {
-            res.json({ status: 'success', result: result.trim() });
-        }
-    });
 });
 
-
-///////////
-
-
-// 新增聊天历史相关的路由
+/**
+ * 获取用户聊天历史记录
+ */
 app.post('/api/chat-history', async (req, res) => {
     try {
         const { email } = req.body;
-        const result = await executePythonScript('chat_history.py', [
-            'get_history',
-            email
-        ]);
+        const result = await executePythonScript('chat_history.py', ['get_history', email]);
         res.json(result);
     } catch (error) {
         console.error('获取聊天历史失败:', error);
@@ -232,6 +196,9 @@ app.post('/api/chat-history', async (req, res) => {
     }
 });
 
+/**
+ * 保存新的聊天记录
+ */
 app.post('/api/save-chat', async (req, res) => {
     try {
         const { email, messages } = req.body;
@@ -247,13 +214,13 @@ app.post('/api/save-chat', async (req, res) => {
     }
 });
 
+/**
+ * 获取特定聊天记录详情
+ */
 app.get('/api/chat/:id', async (req, res) => {
     try {
         const chatId = req.params.id;
-        const result = await executePythonScript('chat_history.py', [
-            'get_chat',
-            chatId
-        ]);
+        const result = await executePythonScript('chat_history.py', ['get_chat', chatId]);
         res.json(result);
     } catch (error) {
         console.error('获取聊天记录失败:', error);
@@ -261,20 +228,23 @@ app.get('/api/chat/:id', async (req, res) => {
     }
 });
 
+/**
+ * 删除特定聊天记录
+ */
 app.delete('/api/chat/:id', async (req, res) => {
     try {
         const chatId = req.params.id;
-        const result = await executePythonScript('chat_history.py', [
-            'delete_chat',
-            chatId
-        ]);
+        const result = await executePythonScript('chat_history.py', ['delete_chat', chatId]);
         res.json(result);
     } catch (error) {
         console.error('删除聊天记录失败:', error);
         res.status(500).json({ success: false, message: '服务器错误' });
     }
 });
-// 添加更新聊天记录的路由
+
+/**
+ * 更新特定聊天记录
+ */
 app.post('/api/update-chat', async (req, res) => {
     try {
         const { chatId, messages } = req.body;
@@ -289,15 +259,11 @@ app.post('/api/update-chat', async (req, res) => {
         res.status(500).json({ success: false, message: '服务器错误' });
     }
 });
-// 保留原有的服务器启动代码...
 
-
-
-
-//////////////////////////////////
-//以下用于question.html和answer.html
-
-// 提交问题
+// --- 问答系统相关路由 ---
+/**
+ * 学生提交问题
+ */
 app.post('/api/submit-question', async (req, res) => {
     try {
         const { email, title, content } = req.body;
@@ -314,7 +280,9 @@ app.post('/api/submit-question', async (req, res) => {
     }
 });
 
-// 获取学生的问题列表
+/**
+ * 获取特定学生的问题列表
+ */
 app.get('/api/questions/:email', async (req, res) => {
     try {
         const email = req.params.email;
@@ -329,12 +297,12 @@ app.get('/api/questions/:email', async (req, res) => {
     }
 });
 
-// 获取所有问题（老师用）
+/**
+ * 获取所有学生问题（供教师使用）
+ */
 app.get('/api/all-questions', async (req, res) => {
     try {
-        const result = await executePythonScript('qa_operations.py', [
-            'get_all_questions'
-        ]);
+        const result = await executePythonScript('qa_operations.py', ['get_all_questions']);
         res.json(result);
     } catch (error) {
         console.error('获取所有问题失败:', error);
@@ -342,7 +310,9 @@ app.get('/api/all-questions', async (req, res) => {
     }
 });
 
-// 提交回答
+/**
+ * 教师提交回答
+ */
 app.post('/api/submit-answer', async (req, res) => {
     try {
         const { questionId, answer } = req.body;
@@ -358,9 +328,9 @@ app.post('/api/submit-answer', async (req, res) => {
     }
 });
 
-
-
-// Add these new routes in server.js
+/**
+ * 删除问题
+ */
 app.delete('/api/question/:id', async (req, res) => {
     try {
         const questionId = req.params.id;
@@ -375,6 +345,9 @@ app.delete('/api/question/:id', async (req, res) => {
     }
 });
 
+/**
+ * 更新问题
+ */
 app.put('/api/question/:id', async (req, res) => {
     try {
         const questionId = req.params.id;
@@ -392,10 +365,9 @@ app.put('/api/question/:id', async (req, res) => {
     }
 });
 
-
-
-
-// 学生追问路由
+/**
+ * 学生提交追问
+ */
 app.post('/api/follow-up', async (req, res) => {
     try {
         const { questionId, content } = req.body;
@@ -410,7 +382,9 @@ app.post('/api/follow-up', async (req, res) => {
     }
 });
 
-
+/**
+ * 教师回复追问
+ */
 app.post('/api/follow-up-answer', async (req, res) => {
     try {
         const { questionId, content } = req.body;
@@ -426,14 +400,34 @@ app.post('/api/follow-up-answer', async (req, res) => {
     }
 });
 
+// --- 运行Python脚本路由 ---
+/**
+ * 执行Python脚本测试
+ */
+app.post('/run-script', (req, res) => {
+    const pythonProcess = spawn('python', ['test.py']);
+    let result = '';
+    let error = '';
 
+    pythonProcess.stdout.on('data', (data) => {
+        result += data.toString();
+    });
 
+    pythonProcess.stderr.on('data', (data) => {
+        error += data.toString();
+    });
 
+    pythonProcess.on('close', (code) => {
+        if (code !== 0 || error) {
+            res.status(500).json({ status: 'error', result: error });
+        } else {
+            res.json({ status: 'success', result: result.trim() });
+        }
+    });
+});
 
-
-
-
-
-
-
-/////////////////////////////////
+// ===== 启动服务器 =====
+app.listen(port, '0.0.0.0', () => {
+    console.log(`服务器运行在 http://localhost:${port}`);
+    console.log(`可通过本地网络IP访问：http://${getIPAddress()}:${port}`);
+});
