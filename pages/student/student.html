@@ -4,18 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学生主界面</title>
+    <!-- 引入导航栏组件脚本 -->
+    <script src="./student-navbar.js"></script>
     <style>
+        /* 页面样式 */
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
+            margin: 0;
             background-color: #f4f4f4;
         }
 
         .main-content {
-            margin-left: 250px;
+            margin-left: 250px; /* 与侧边栏宽度相同 */
             padding: 20px;
             min-height: 100vh;
+            box-sizing: border-box;
         }
 
         h1 {
@@ -31,51 +34,15 @@
     </style>
 </head>
 <body>
-    <div id="navbar"></div>
-
+    <!-- 使用自定义元素替代之前的导航栏 -->
+    <student-navbar></student-navbar>
     <div class="main-content">
         <h1>欢迎来到学生主界面</h1>
         <p>在这里，你可以获取个性化建议、学习编程概念、分析实战案例、解决疑难问题、分析学习行为以及与AI对话。</p>
     </div>
 
     <script>
-        // 加载并执行navbar内容的函数
-        function loadNavbar() {
-            fetch('navbar.html')
-                .then(response => response.text())
-                .then(data => {
-                    // 创建一个临时容器
-                    const temp = document.createElement('div');
-                    temp.innerHTML = data;
-                    
-                    // 提取所有样式标签
-                    const styles = temp.getElementsByTagName('style');
-                    Array.from(styles).forEach(style => {
-                        document.head.appendChild(style.cloneNode(true));
-                    });
-                    
-                    // 提取所有脚本标签
-                    const scripts = temp.getElementsByTagName('script');
-                    Array.from(scripts).forEach(script => {
-                        const newScript = document.createElement('script');
-                        if (script.src) {
-                            newScript.src = script.src;
-                        } else {
-                            newScript.textContent = script.textContent;
-                        }
-                        document.body.appendChild(newScript);
-                    });
-                    
-                    // 添加HTML内容
-                    document.getElementById('navbar').innerHTML = temp.querySelector('.sidebar').outerHTML;
-                })
-                .catch(error => {
-                    console.error('加载导航栏时出错:', error);
-                });
-        }
 
-        // 页面加载完成后执行loadNavbar函数
-        document.addEventListener('DOMContentLoaded', loadNavbar);
     </script>
 </body>
 </html>

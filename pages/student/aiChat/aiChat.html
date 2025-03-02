@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI对话助手</title>
+    <script src="../student-navbar.js"></script>
+
     <style>
         .header-content {
             display: flex;
@@ -183,6 +185,8 @@
     </style>
 </head>
 <body>
+    <student-navbar></student-navbar>
+
     <div id="navbar"></div>
     <div class="history-panel">
         <h3>历史对话</h3>
@@ -234,36 +238,6 @@
         const chatContainer = document.getElementById('chat-container');
         const statusDiv = document.getElementById('status');
 
-        // 加载导航栏
-        function loadNavbar() {
-            fetch('../navbar.html')
-                .then(response => response.text())
-                .then(data => {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = data;
-                    
-                    const styles = temp.getElementsByTagName('style');
-                    Array.from(styles).forEach(style => {
-                        document.head.appendChild(style.cloneNode(true));
-                    });
-                    
-                    const scripts = temp.getElementsByTagName('script');
-                    Array.from(scripts).forEach(script => {
-                        const newScript = document.createElement('script');
-                        if (script.src) {
-                            newScript.src = script.src;
-                        } else {
-                            newScript.textContent = script.textContent;
-                        }
-                        document.body.appendChild(newScript);
-                    });
-                    
-                    document.getElementById('navbar').innerHTML = temp.querySelector('.sidebar').outerHTML;
-                })
-                .catch(error => {
-                    console.error('加载导航栏时出错:', error);
-                });
-        }
 
         function showTypingIndicator() {
             statusDiv.textContent = 'AI正在输入...';
@@ -498,7 +472,6 @@ async function saveChat(messages) {
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadNavbar();
             loadChatHistory();
             startNewChat();
         });

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>问答</title>
+    <script src="../student-navbar.js"></script>
+
     <style>
         body {
             margin: 0;
@@ -203,8 +205,8 @@
     
 </head>
 <body>
-    <div id="navbar"></div>
-
+    <!-- 使用自定义元素替代之前的导航栏 -->
+    <student-navbar></student-navbar>
     <div class="main-content">
         <h1>编程问题求助</h1>
         
@@ -220,44 +222,7 @@
     </div>
 
 <script>
-        // 加载并执行navbar内容的函数
-        function loadNavbar() {
-            fetch('../navbar.html')
-                .then(response => response.text())
-                .then(data => {
-                    // 创建一个临时容器
-                    const temp = document.createElement('div');
-                    temp.innerHTML = data;
-                    
-                    // 提取所有样式标签
-                    const styles = temp.getElementsByTagName('style');
-                    Array.from(styles).forEach(style => {
-                        document.head.appendChild(style.cloneNode(true));
-                    });
-                    
-                    // 提取所有脚本标签
-                    const scripts = temp.getElementsByTagName('script');
-                    Array.from(scripts).forEach(script => {
-                        const newScript = document.createElement('script');
-                        if (script.src) {
-                            newScript.src = script.src;
-                        } else {
-                            newScript.textContent = script.textContent;
-                        }
-                        document.body.appendChild(newScript);
-                    });
-                    
-                    // 添加HTML内容
-                    document.getElementById('navbar').innerHTML = temp.querySelector('.sidebar').outerHTML;
-                })
-                .catch(error => {
-                    console.error('加载导航栏时出错:', error);
-                });
-        }
-
-        // 页面加载完成后执行loadNavbar函数
-        document.addEventListener('DOMContentLoaded', loadNavbar);
-
+ 
         // 获取当前登录用户的邮箱（从localStorage中获取）
         const userEmail = localStorage.getItem('userEmail');
 

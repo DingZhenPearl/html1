@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>测试服务器</title>
+    <!-- 引入导航栏组件脚本 -->
+    <script src="../teacher-navbar.js"></script>
     <style>
- 
         /* 主内容区样式 */
         .main-content {
             margin-left: 250px; /* 与侧边栏宽度相同 */
@@ -16,7 +17,9 @@
     </style>
 </head>
 <body>
-    <div id="navbar"></div>
+    <!-- 使用自定义元素替代之前的导航栏 -->
+    <teacher-navbar></teacher-navbar>
+    
     <div class="main-content">
         <button onclick="runPythonScript()">教学数据管理</button>
         <!-- 在适当的位置添加以下内容 -->
@@ -26,50 +29,8 @@
         </div>
     </div>    
 
-
-
-
-
     <script>
-
-        
-        function loadNavbar() {
-            fetch('../navbar.html')
-                .then(response => response.text())
-                .then(data => {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = data;
-                    
-                    const styles = temp.getElementsByTagName('style');
-                    Array.from(styles).forEach(style => {
-                        document.head.appendChild(style.cloneNode(true));
-                    });
-                    
-                    const scripts = temp.getElementsByTagName('script');
-                    Array.from(scripts).forEach(script => {
-                        const newScript = document.createElement('script');
-                        if (script.src) {
-                            newScript.src = script.src;
-                        } else {
-                            newScript.textContent = script.textContent;
-                        }
-                        document.body.appendChild(newScript);
-                    });
-                    
-                    document.getElementById('navbar').innerHTML = temp.querySelector('.sidebar').outerHTML;
-                })
-                .catch(error => {
-                    console.error('加载导航栏时出错:', error);
-                });
-        }
-
-
-        document.addEventListener('DOMContentLoaded', loadNavbar);
-
-
-
-
-
+        // 删除原来的loadNavbar函数，因为现在使用Web Components
 
         async function runPythonScript() {
             try {
@@ -92,9 +53,9 @@
             }
         }
         
-        // 绑定按钮点击事件（假设按钮 id 为 run-button）
-        document.getElementById('run-button').addEventListener('click', runPythonScript);
+        // 注意：这里可能有一个问题，页面中没有 id 为 run-button 的元素
+        // 如果需要，可以添加这个按钮，或者移除这行代码
+        // document.getElementById('run-button').addEventListener('click', runPythonScript);
     </script>
-
 </body>
 </html>
