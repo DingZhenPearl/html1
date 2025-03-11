@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./teacher-navbar.js"></script>
+
+    <title>教师主界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            min-height: 100vh;
+        }
+
+        /* 主内容区样式 */
+        .main-content {
+            margin-left: 250px; /* 与侧边栏宽度相同 */
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .top-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .bottom-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .bottom-card {
+            flex: 1;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <teacher-navbar></teacher-navbar>
+
+    <div class="container">
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 顶部统计数据 -->
+            <div class="top-stats">
+                <div class="stat-card">
+                    <h3>总学员人数</h3>
+                    <p>25482</p>
+                </div>
+                <div class="stat-card">
+                    <h3>总访问人数</h3>
+                    <p>19484</p>
+                </div>
+                <div class="stat-card">
+                    <h3>总登录人数</h3>
+                    <p>25481</p>
+                </div>
+                <div class="stat-card">
+                    <h3>总岗位数</h3>
+                    <p>2584</p>
+                </div>
+            </div>
+
+            <!-- 图表展示区 -->
+            <div class="chart-container">
+                <h3>学员行为统计图</h3>
+                <canvas id="chart"></canvas>
+            </div>
+
+            <!-- 底部统计数据 -->
+            <div class="bottom-stats">
+                <div class="bottom-card">
+                    <h3>当前学员统计</h3>
+                    <p>1254</p>
+                </div>
+                <div class="bottom-card">
+                    <h3>附件统计</h3>
+                    <p>1054</p>
+                </div>
+                <div class="bottom-card">
+                    <h3>岗位统计</h3>
+                    <p>1254</p>
+                </div>
+                <div class="bottom-card">
+                    <h3>登录统计</h3>
+                    <p>2564</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 加载并执行navbar内容的函数
+        
+        function loadNavbar() {
+            fetch('navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = data;
+                    
+                    const styles = temp.getElementsByTagName('style');
+                    Array.from(styles).forEach(style => {
+                        document.head.appendChild(style.cloneNode(true));
+                    });
+                    
+                    const scripts = temp.getElementsByTagName('script');
+                    Array.from(scripts).forEach(script => {
+                        const newScript = document.createElement('script');
+                        if (script.src) {
+                            newScript.src = script.src;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        document.body.appendChild(newScript);
+                    });
+                    
+                    document.getElementById('navbar').innerHTML = temp.querySelector('.sidebar').outerHTML;
+                })
+                .catch(error => {
+                    console.error('加载导航栏时出错:', error);
+                });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', loadNavbar);
+
+        // Chart initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['6:37', '11:16:44', '11:16:49', '11:17:00', '11:17:08'],
+                    datasets: [{
+                        label: '实时在线人数',
+                        data: [430, 458, 125, 80, 32],
+                        borderColor: '#007bff',
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
