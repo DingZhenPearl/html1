@@ -13,7 +13,7 @@ const OpenAI = require('openai');
 
 // 初始化Express应用
 const app = express();
-const port = 3000;
+const port = 8000;
 
 // ===== 中间件配置 =====
 app.use(cors({
